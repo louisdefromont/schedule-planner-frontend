@@ -1,9 +1,13 @@
 import { Calendar } from '@fullcalendar/core';
+import dayGridPlugin from '@fullcalendar/daygrid';
 
 document.addEventListener('DOMContentLoaded', function() {
-	var calendarEl: HTMLElement = document.getElementById('calendar')!;
-	var calendar = new Calendar(calendarEl, {
-	  initialView: 'dayGridMonth'
-	});
-	calendar.render();
+  let calendarEl: HTMLElement = document.getElementById('calendar')!;
+
+  let calendar = new Calendar(calendarEl, {
+    plugins: [ dayGridPlugin ]
+    // options here
   });
+
+  calendar.render();
+});

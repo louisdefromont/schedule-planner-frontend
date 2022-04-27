@@ -11,7 +11,7 @@ module.exports = {
 			},
 			{
 				test: /\.css$/,
-				use: 'css-loader'
+				use: ['style-loader', 'css-loader']
 			}
 		]
 	},
@@ -21,9 +21,7 @@ module.exports = {
 	},
 	mode: 'development',
 	devServer: {
-		static: {
-			directory: path.resolve(__dirname, 'dist')
-		},
-		port: 3000
+		static: path.join(__dirname, 'public'),
+		port: 9000
 	}
 }
