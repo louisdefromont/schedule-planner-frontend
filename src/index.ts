@@ -4,6 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import { ScheduledEvent } from './ScheduledEvent';
+import { ScheduledEventStore } from './ScheduledEventStore';
 
 document.addEventListener('DOMContentLoaded', function () {
   let calendarEl: HTMLElement = document.getElementById('calendar')!;
@@ -19,6 +20,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
+  let scheduledEventStore = new ScheduledEventStore();
+
   let calendar: Calendar = new Calendar(calendarEl, {
     plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
     headerToolbar: {
@@ -32,22 +35,21 @@ document.addEventListener('DOMContentLoaded', function () {
     droppable: true, // this allows things to be dropped onto the calendar
     drop: function (info: any) {
       info.draggedEl.parentNode.removeChild(info.draggedEl);
-      let event = new ScheduledEvent(info.draggedEl.innerText); // TODO: Causes ERROR.
-      event.id = info.draggedEl.id;
-      event.endDate = info.date;
+      scheduledEventStore.setEndDate(+info.draggedEl.id, info.date);
     },
-    eventDragStop(info: any) {
-      console.log(info);
+    eventDrop(eventDropInfo: any) {
+      scheduledEventStore.update(eventDropInfo.event);
+    },
+    eventResize(eventResizeInfo: any) {
+      scheduledEventStore.update(eventResizeInfo.event);
     }
   });
 
-  fetch("http://localhost:3000/scheduledEvents", { method: 'GET' })
-    .then(response => response.json())
-    .then(data => {
-      data.forEach((event: ScheduledEvent) => {
-        if (event.endDate) {
-          console.log(event);
-          if ((new Date(event.endDate).getTime() - new Date(event.startDate!).getTime()) / 60000 <= event.minuteDuration!) {
+  scheduledEventStore.init().then(() => {
+    Array.from(scheduledEventStore.events.values()).forEach((event: ScheduledEvent) => {
+      if (event.endDate) {
+        if (event.startDate) {
+          if (event.isDurationLocked()) {
             calendar.addEvent({
               title: event.title,
               start: event.startDate!,
@@ -57,20 +59,27 @@ document.addEventListener('DOMContentLoaded', function () {
           } else {
             calendar.addEvent({
               title: event.title,
-              start: event.startDate!,
+              start: event.endDate!,
               id: event.id!.toString()
             });
           }
         } else {
-          // add event to draggable
-          let drag = document.createElement('div');
-          drag.classList.add('fc-event');
-          drag.innerText = event.title;
-          drag.id = event.id!.toString();
-          containerEl.appendChild(drag);
+          calendar.addEvent({
+            title: event.title,
+            start: event.endDate,
+            id: event.id!.toString()
+          });
         }
-      })
+      } else {
+        // add event to draggable
+        let drag = document.createElement('div');
+        drag.classList.add('fc-event');
+        drag.innerText = event.title;
+        drag.id = event.id!.toString();
+        containerEl.appendChild(drag);
+      }
     });
+});
 
 
   calendar.render();

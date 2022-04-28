@@ -13,8 +13,17 @@ module.exports = {
 			{
 				test: /\.css$/,
 				use: ['style-loader', 'css-loader']
+			},
+			{
+				test: /\.js$/,
+				use: 'babel-loader',
+				exclude: /node_modules/
 			}
 		]
+	},
+	resolve: {
+		extensions: ['.tsx', '.ts', '.js'],
+		modules: ['src', 'node_modules']
 	},
 	output: {
 		filename: 'bundle.js',

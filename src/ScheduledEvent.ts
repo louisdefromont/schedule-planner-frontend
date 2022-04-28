@@ -10,4 +10,11 @@ export class ScheduledEvent {
 	constructor(title: string) {
 		this.title = title;
 	}
+
+	public isDurationLocked(): boolean {
+		if (this.minuteDuration) {
+			return ((this.endDate!.getTime() - this.startDate!.getTime()) / 60000 <= this.minuteDuration!);
+		}
+		return false;
+	}
 };
